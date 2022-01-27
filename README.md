@@ -31,7 +31,7 @@ Install jq to your machine before runing `start_all.sh` script
 sudo apt install jq
 ```
 
-## Setup repo
+## Setup all
 
 run : 
-```./create_repository.sh```
+```./start_all.sh```
