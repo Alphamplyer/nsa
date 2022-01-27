@@ -1,0 +1,10 @@
+[Unit]
+Description="Run the frontend by running 'npm run start'"
+
+[Service]
+User=root
+Group=root
+ExecStart=npx http-server -p 80 /home/vagrant/dist/front
+
+[Install]
+WantedBy=multi-user.target

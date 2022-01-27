@@ -1,0 +1,10 @@
+[Unit]
+Description=run-server
+
+[Service]
+User=root
+Group=root
+ExecStart=php /home/vagrant/back/artisan serve --host 0.0.0.0 --port 80
+
+[Install]
+WantedBy=multi-user.target

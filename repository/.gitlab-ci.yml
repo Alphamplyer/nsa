@@ -1,0 +1,48 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  only:
+    - master
+  artifacts:
+    paths:
+      - back/vendor
+      - front/node_modules
+  script:
+    - build_dir=$(pwd)
+    - cd ${build_dir}/back
+    - composer update
+
+    - cd ${build_dir}/front
+    - npm install
+
+test:
+  stage: test
+  only:
+    - master
+  script:
+    - cd back
+    - mv .env.example .env
+    - ./vendor/bin/phpunit tests/
+    - cd ../front
+    - npm test
+
+deploy:
+ stage: deploy
+ only:
+   - master
+ script:
+   - build_dir=$(pwd)
+   - rm -rf ${build_dir}/front/node_modules
+   - cd ${build_dir}/setup/mysql/ && ansible-galaxy install -r requirements.yml
+   - cd ${build_dir}/setup/backend/ && ansible-galaxy install -r requirements.yml
+   - cd ${build_dir}/setup/frontend/ && ansible-galaxy install -r requirements.yml
+   - cd ${build_dir}
+   - rm -rf ${build_dir}/front.tar.gz && tar -czf ${build_dir}/front.tar.gz front
+   - rm -rf ${build_dir}/back.tar.gz && tar -czf ${build_dir}/back.tar.gz back
+   - ansible-playbook -i ${build_dir}/ansible_inventory.ini ${build_dir}/setup/mysql/install.yml
+   - ansible-playbook -i ${build_dir}/ansible_inventory.ini ${build_dir}/setup/backend/install.yml
+   - ansible-playbook -i ${build_dir}/ansible_inventory.ini ${build_dir}/setup/frontend/install.yml

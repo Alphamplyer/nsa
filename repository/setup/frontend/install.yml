@@ -1,0 +1,52 @@
+---
+- hosts: nsa-frontend
+  vars_files:
+    - ./vars.yml
+  roles:
+    - role: geerlingguy.nodejs
+      become: yes
+
+  tasks:
+    - name: Create run server service
+      ansible.builtin.copy:
+        src: ./run-server.service
+        dest: /lib/systemd/system/run-server.service
+      become: yes
+
+    - name: Copy files to production server
+      ansible.builtin.copy:
+        src: ../../front.tar.gz
+        dest: /home/vagrant/front.tar.gz
+
+    - name: Create Build directory to build frontend
+      command: "mkdir -p /home/vagrant/build"
+
+    - name: Remove project files
+      command: rm -rf /home/vagrant/build/front
+      become: yes
+
+    - name: Unzip archive
+      command: tar -xzvf /home/vagrant/front.tar.gz -C /home/vagrant/build
+
+    - name: Install dependencies packages
+      command: "chdir=/home/vagrant/build/front/ npm install --loglevel=error"
+
+    - name: Build the front on the build directory
+      command: "chdir=/home/vagrant/build/front/ npm run build"
+
+    - name: Stop run server service
+      ansible.builtin.service:
+        name: run-server
+        pattern: /usr/bin/node
+        state: stopped
+      become: yes
+
+    - name: Copy files from build to front
+      command: "cp -rf /home/vagrant/build/front/dist /home/vagrant"
+
+    - name: Restart the run server services
+      ansible.builtin.service:
+        name: run-server
+        pattern: /usr/bin/node
+        state: restarted
+      become: yes

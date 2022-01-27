@@ -1,0 +1,4 @@
+---
+- src: geerlingguy.composer
+- src: geerlingguy.git
+- src: geerlingguy.php

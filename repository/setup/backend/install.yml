@@ -1,0 +1,55 @@
+---
+- hosts: nsa-backend
+  vars_files:
+    - ./vars.yml
+  roles:
+    - role: geerlingguy.git
+      become: yes
+    - role: geerlingguy.php
+      become: yes
+    - role: geerlingguy.composer
+      become: yes
+
+  tasks:
+    - name: Install unzip dependencies to create or unzip archive
+      apt:
+        name: unzip
+        state: present
+      become: yes
+
+    - name: Install PHP drive for Mysql
+      apt:
+        name: php7.3-mysql
+        state: present
+      become: yes
+  
+    - name: Copy Back folder to production server
+      ansible.builtin.copy:
+        src: ../../back.tar.gz
+        dest: /home/vagrant/back.tar.gz
+      become: yes
+
+    - name: Unzip tar to the specified location
+      command: tar -xzvf /home/vagrant/back.tar.gz -C /home/vagrant
+      become: yes
+
+    - name: Run Composer Update in order to install dependencies
+      become: yes
+      command: "chdir=/home/vagrant/back/ composer update --no-interaction"
+
+    - name: Create run-server service
+      ansible.builtin.copy:
+        src: ./run-server.service
+        dest: /lib/systemd/system/run-server.service
+      become: yes
+
+    - name: Migrate DB schemas
+      command: "chdir=/home/vagrant/back/ php artisan migrate --force"
+      become: yes
+
+    - name: Start or Restarting run-server service
+      ansible.builtin.service:
+        name: run-server
+        pattern: /usr/bin/php
+        state: restarted
+      become: yes

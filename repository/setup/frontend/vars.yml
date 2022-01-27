@@ -1,0 +1,7 @@
+---
+nodejs_version: "14.x"
+npm_config_prefix: "/usr/local/lib/npm"
+nodejs_npm_global_packages: []
+npm_config_unsafe_perm: "false"
+nodejs_generate_etc_profile: "true"
+nodejs_package_json_path: ""
